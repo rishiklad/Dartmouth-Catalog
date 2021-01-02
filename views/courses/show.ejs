@@ -1,6 +1,6 @@
 <% layout('layouts/boilerplate') %>
 
-    <div class="container">
+    <div class="container mt-3">
         <h1 class="display-5">
             <%= course.code %>
                 <%= course.number %>: <%= course.title %>
@@ -11,7 +11,13 @@
         <div class="col">
             <h3 class="lean">Description</h3>
             <p>
-                <%= course.description%>
+                <% if (course.description=="" ) { %>
+                    <i>
+                        <%= "No description available" %>
+                    </i>
+                    <% } else { %>
+                        <%= course.description %>...                                                                 
+                                                                        <% } %> 
             </p>
             <a href="<%= course.url %> ">View on Dartmouth ORC</a>
         </div>

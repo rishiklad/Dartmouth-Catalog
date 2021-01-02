@@ -51,22 +51,32 @@ app.get('/departments', async (req, res) => {
 
 app.get('/departments/:deptCode', async (req, res) => {
     const { deptCode } = req.params;
-    const courses = await Course.find({ code: deptCode }); 
-    let deptName = await Course.findOne({ code: deptCode }); 
-    deptName = deptName.department; 
-    // res.send(courses);
-    res.render('courses/index', { deptCode, courses, deptName }); 
+    const courses = await Course.find({ code: deptCode });
+    let deptName = await Course.findOne({ code: deptCode });
+    deptName = deptName.department;
+    res.render('courses/index', { deptCode, courses, deptName });
 })
 
 app.get('/departments/:deptCode/:courseNum', async (req, res) => {
     const { deptCode, courseNum } = req.params;
     const course = await Course.findOne({ code: deptCode, number: courseNum });
-    const similarCourses = await Course.aggregate([{ $match: { code: deptCode } }, { $sample: { size: 5 } }]); 
-    res.render('courses/show', { course, similarCourses }); 
+    const similarCourses = await Course.aggregate([{ $match: { code: deptCode } }, { $sample: { size: 7 } }]);
+    res.render('courses/show', { course, similarCourses });
+})
+
+app.get('/courses', async (req, res) => {
+    const courses = await Course.find();
+    const deptName = "All"
+    res.render('courses/index', { courses, deptName });
+})
+
+app.get('/lucky', async (req, res) => {
+    const course = await Course.aggregate([{ $sample: { size: 1 } }]);
+    res.redirect(`/departments/${course[0].code}/${course[0].number}`); 
 })
 
 app.all('*', (req, res, next) => {
-    res.status(400).send("Couldn't find what you were looking for!"); 
+    res.status(400).send("Couldn't find what you were looking for!");
 })
 
 app.listen(3000, () => {
