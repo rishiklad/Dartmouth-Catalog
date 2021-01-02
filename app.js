@@ -51,8 +51,11 @@ app.get('/departments', async (req, res) => {
 
 app.get('/departments/:deptCode', async (req, res) => {
     const { deptCode } = req.params;
-    const classes = await Course.find({ code: deptCode })
-    res.send(classes);
+    const courses = await Course.find({ code: deptCode }); 
+    let deptName = await Course.findOne({ code: deptCode }); 
+    deptName = deptName.department; 
+    // res.send(courses);
+    res.render('courses/index', { deptCode, courses, deptName }); 
 })
 
 app.get('/departments/:deptCode/:courseNum', async (req, res) => {
