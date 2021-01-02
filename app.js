@@ -60,10 +60,13 @@ app.get('/departments/:deptCode', async (req, res) => {
 
 app.get('/departments/:deptCode/:courseNum', async (req, res) => {
     const { deptCode, courseNum } = req.params;
-    const course = await Course.find({ code: deptCode, number: courseNum });
-    res.send(course);
+    const course = await Course.findOne({ code: deptCode, number: courseNum });
+    res.render('courses/show', { course }); 
 })
 
+app.all('*', (req, res, next) => {
+    res.status(400).send("Couldn't find what you were looking for!"); 
+})
 
 app.listen(3000, () => {
     console.log('DARTMOUTH CATALOG SERVER ON PORT 3000');
