@@ -38,15 +38,15 @@ app.get('/', (req, res) => {
 })
 
 app.get('/departments', async (req, res) => {
-    const depts = await Course.distinct('department');
-    let deptsToCodes = {};
+    const codes = await Course.distinct('code');
+    let codesToDepts = {};
 
-    for (let dept of depts) {
-        const data = await Course.findOne({ department: dept })
-        deptsToCodes[`${dept}`] = data.code;
+    for (let code of codes) {
+        const data = await Course.findOne({ code: code })
+        codesToDepts[`${code}`] = data.department;
     }
 
-    res.render('departments/index', { deptsToCodes, depts });
+    res.render('departments/index', { codesToDepts, codes });
 })
 
 app.get('/departments/:deptCode', async (req, res) => {
@@ -61,7 +61,8 @@ app.get('/departments/:deptCode', async (req, res) => {
 app.get('/departments/:deptCode/:courseNum', async (req, res) => {
     const { deptCode, courseNum } = req.params;
     const course = await Course.findOne({ code: deptCode, number: courseNum });
-    res.render('courses/show', { course }); 
+    const similarCourses = await Course.aggregate([{ $match: { code: deptCode } }, { $sample: { size: 5 } }]); 
+    res.render('courses/show', { course, similarCourses }); 
 })
 
 app.all('*', (req, res, next) => {
