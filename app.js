@@ -62,7 +62,7 @@ app.get('/departments/:deptCode', async (req, res) => {
 
 app.get('/departments/:deptCode/:courseNum', async (req, res) => {
     const { deptCode, courseNum } = req.params;
-    const course = await Course.findOne({ code: deptCode, number: courseNum });
+    const course = await Course.findOne({ code: deptCode, number: courseNum }).populate('reviews');
     const similarCourses = await Course.aggregate([{ $match: { code: deptCode } }, { $sample: { size: 7 } }]);
     res.render('courses/show', { course, similarCourses });
 })
@@ -85,15 +85,14 @@ app.post('/departments/:deptCode/:courseNum/reviews', async (req, res) => {
     course.reviews.push(review); 
     await review.save(); 
     await course.save(); 
-    res.send(course); 
+    res.redirect(`/departments/${deptCode}/${courseNum}`); 
 })
 
+// @TODO: determine whether to support review deletion functionality
 app.delete('/departments/:deptCode/:courseNum/reviews/:reviewID', async (req, res) => {
     const { deptCode, courseNum, reviewID } = req.params; 
     await Review.findByIdAndDelete(reviewID); 
     await Course.updateOne({ reviews: { $in: [reviewID] } }, { $pull: { reviews: { $in: [reviewID] } } })
-    // const course = await Course.findOne({ code: deptCode, number: courseNum });
-    // res.send(course); 
     res.redirect(`/departments/${deptCode}/${courseNum}`); 
 })
 

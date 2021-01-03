@@ -7,6 +7,7 @@ const ReviewSchema = new Schema({
     term: String,
     professor: String,
     rating: Number,
+    classYear: Number, 
     body: String
 })
 
