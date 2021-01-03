@@ -5,6 +5,8 @@ const path = require('path');
 const { join } = path;
 const methodOverride = require('method-override');
 const Course = require('./models/course');
+const Review = require('./models/review');
+const { reverse } = require('dns');
 
 // Connects Mongoose to local DB
 mongoose.connect('mongodb://localhost:27017/dartmouthcatalog', {
@@ -26,13 +28,14 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json()) // helps parse JSON in the body of a POST request and make req.body substantive 
+
 app.use(methodOverride('_method'));
 
 ////////////////////////////////////////
 //             ROUTES                 //
 ////////////////////////////////////////
 
-// GET ROUTES 
 app.get('/', (req, res) => {
     res.send('HOME PAGE');
 })
@@ -72,7 +75,26 @@ app.get('/courses', async (req, res) => {
 
 app.get('/lucky', async (req, res) => {
     const course = await Course.aggregate([{ $sample: { size: 1 } }]);
-    res.redirect(`/departments/${course[0].code}/${course[0].number}`); 
+    res.redirect(`/departments/${course[0].code}/${course[0].number}`);
+})
+
+app.post('/departments/:deptCode/:courseNum/reviews', async (req, res) => {
+    const { deptCode, courseNum } = req.params;
+    const course = await Course.findOne({ code: deptCode, number: courseNum });
+    const review = new Review(req.body); 
+    course.reviews.push(review); 
+    await review.save(); 
+    await course.save(); 
+    res.send(course); 
+})
+
+app.delete('/departments/:deptCode/:courseNum/reviews/:reviewID', async (req, res) => {
+    const { deptCode, courseNum, reviewID } = req.params; 
+    await Review.findByIdAndDelete(reviewID); 
+    await Course.updateOne({ reviews: { $in: [reviewID] } }, { $pull: { reviews: { $in: [reviewID] } } })
+    // const course = await Course.findOne({ code: deptCode, number: courseNum });
+    // res.send(course); 
+    res.redirect(`/departments/${deptCode}/${courseNum}`); 
 })
 
 app.all('*', (req, res, next) => {
